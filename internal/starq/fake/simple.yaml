@@ -1,0 +1,4 @@
+---
+rules:
+  - name: Read simple field
+    jq: .simple
