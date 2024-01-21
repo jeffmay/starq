@@ -1,0 +1,3 @@
+enable: # In addition to https://golangci-lint.run/usage/linters/#enabled-by-default
+  - exhaustruct # warn when constructing inline structs with uninitialized fields
+

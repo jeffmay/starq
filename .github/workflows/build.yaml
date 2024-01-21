@@ -1,0 +1,23 @@
+name: Build and Test
+on:
+  - pull_request
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.21.3', '>1.21.3' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Test
+        shell: bash
+        run: go test -v ./...
+      - name: Lint
+        shell: bash
+        run: ./lint.sh
