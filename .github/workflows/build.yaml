@@ -1,6 +1,14 @@
 name: Build and Test
+
 on:
-  - pull_request
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build:
 
@@ -11,13 +19,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-      - name: Test
+
+      - name: Run Tests
         shell: bash
-        run: go test -v ./...
-      - name: Lint
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Report CodeCov
+        if: ${{ startsWith(matrix.go-version, '>') }}
+        uses: codecov/codecov-action@v4-beta
+        with:
+          file: ./coverage.txt
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Report Lint Errors
         shell: bash
         run: ./lint.sh
