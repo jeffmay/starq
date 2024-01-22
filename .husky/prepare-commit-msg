@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Make sure we have npm dependencies installed (the dry run is ~150 ms, which is slow, but tolerable)
+if [[ "$(npm install --ignore-scripts --dry-run | grep 'up to date')" = "" ]]; then
+  echo "Installing npm dependencies..."
+  npm install
+fi
+
+# Prepare a commitizen conventional commit via cz-cli
+exec < /dev/tty && npx cz --hook || true
