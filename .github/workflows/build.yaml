@@ -27,16 +27,16 @@ jobs:
 
       - name: Run Tests
         shell: bash
-        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+        run: go test -race -coverprofile=cover.out -covermode=atomic ./...
 
       - name: Report CodeCov
         if: ${{ startsWith(matrix.go-version, '>') }}
         uses: codecov/codecov-action@v4-beta
         with:
-          file: ./coverage.txt
+          file: ./cover.out
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Report Lint Errors
         shell: bash
-        run: ./lint.sh
+        run: ./lint.sh -v --out-format github-actions

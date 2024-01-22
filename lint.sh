@@ -12,4 +12,4 @@ if [ -z "$(command -v $gopath_bin/golangci-lint)" ]; then
 fi
 
 # Run golangci-lint with github-actions format
-"$gopath_bin/golangci-lint" run -v --config .golangci.yaml --out-format github-actions ./...
+"$gopath_bin/golangci-lint" run --config .golangci.yaml ./... $@
