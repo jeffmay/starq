@@ -10,5 +10,5 @@ if [[ "$(npm install --ignore-scripts --dry-run | grep 'up to date')" = "" ]]; t
   npm install
 fi
 
-# Run devmoji to lint the commit message
-npx devmoji -e --lint
+# Run devmoji to edit and lint the commit message
+npx devmoji --edit --lint
