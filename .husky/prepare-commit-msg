@@ -1,5 +1,16 @@
 #!/bin/sh
 
+# Skip if NOVERIFY is set to 1
+if [[ "$NOVERIFY" == "1" ]]; then exit 0; fi
+
+# Skip if we are appending a commit
+is_amend="$(ps -ocommand= -p $PPID | grep -e '--amend')"
+if [[ "$is_amend" != "" ]]; then exit 0; fi
+
+# Skip if we're on a detached head
+branch_name="$(git branch | grep '*' | sed 's/* //')"
+if [[ "$branch_name" == *"no branch"* ]]; then exit 0; fi
+
 # Make sure we have npm dependencies installed (the dry run is ~150 ms, which is slow, but tolerable)
 if [[ "$(npm install --ignore-scripts --dry-run | grep 'up to date')" = "" ]]; then
   echo "Installing npm dependencies..."

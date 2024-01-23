@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Skip if NOVERIFY is set to 1
+if [[ "$NOVERIFY" == "1" ]]; then exit 0; fi
+
 # Make sure we have npm dependencies installed (the dry run is ~150 ms, which is slow, but tolerable)
 if [[ "$(npm install --ignore-scripts --dry-run | grep 'up to date')" = "" ]]; then
   echo "Installing npm dependencies..."
