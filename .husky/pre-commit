@@ -1,4 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Skip if NOVERIFY is set to 1
+if [[ "$NOVERIFY" == "1" ]]; then exit 0; fi
+
+# Otherwise, always run make pre-commit
 make pre-commit
