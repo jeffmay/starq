@@ -2,7 +2,9 @@ package starq
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -27,14 +29,14 @@ func Run(opts Opts) error {
 		if err != nil {
 			return fmt.Errorf("failed to read config file: %w", err)
 		}
-		fmt.Print(string(bytes))
+		fmt.Printf("Loaded config:\n%s\n", string(bytes))
 
 		var config Config
 		err = yaml.Unmarshal(bytes, &config)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshall config object: %w", err)
 		}
-		fmt.Printf("parsed config: %+v\n", config)
+		fmt.Printf("Parsed config: %+v\n", config)
 
 		// allocate space for the rules from the config
 		nAddRules += len(config.Rules)
@@ -56,9 +58,7 @@ func Run(opts Opts) error {
 	rules = append(rules, appendRules...)
 
 	fmt.Printf("Rules: %+v\n", rules)
-
-	// TODO: Call jq with the compiled rules
-	return nil
+	return ApplyRules(rules, opts.Input, opts.Output, opts.Errors)
 }
 
 func ParseRules(countFrom int, raw []string) ([]Rule, error) {
@@ -78,4 +78,22 @@ func ParseRule(name string, raw string) (Rule, error) {
 		Name: name,
 		Jq:   raw,
 	}, nil
+}
+
+func ApplyRules(rules []Rule, input io.Reader, output io.Writer, errors io.Writer) error {
+	// apply all rules in sequence in a single command
+	ruleStrings := make([]string, len(rules))
+	for i, r := range rules {
+		ruleStrings[i] = r.Jq
+	}
+	cmd := exec.Command("jq", ruleStrings...)
+	cmd.Stdin = input
+	cmd.Stdout = output
+	cmd.Stderr = errors
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to run jq: %w", err)
+	}
+	return nil
 }

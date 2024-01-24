@@ -48,6 +48,7 @@ var rootCmd = &cobra.Command{
 
 		opts.Input = cmd.InOrStdin()
 		opts.Output = cmd.OutOrStdout()
+		opts.Errors = cmd.ErrOrStderr()
 
 		err = starq.Run(opts)
 		exitIf(err)

@@ -1,0 +1,8 @@
+---
+rules:
+  - name: Pick paths and schemas
+    jq: |
+      {
+        paths: .paths | map_values({ get: .get }),
+        components: .components.schemas
+      }
