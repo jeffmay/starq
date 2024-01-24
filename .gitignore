@@ -8,6 +8,11 @@
 *.so
 *.dylib
 
+# Ignore build output
+starq
+# But not any starq package
+!starq/
+
 # Test binary, built with `go test -c`
 *.test
 
