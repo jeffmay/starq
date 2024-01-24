@@ -8,4 +8,5 @@ type Opts struct {
 	ConfigFile   string
 	Input        io.Reader
 	Output       io.Writer
+	Errors       io.Writer
 }
