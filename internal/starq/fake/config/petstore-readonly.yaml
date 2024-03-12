@@ -1,8 +1,11 @@
 ---
+input:
+  file: ../input/petstore-openapi.json
 rules:
   - name: Pick paths and schemas
     jq: |
       {
+        info: .info,
         paths: .paths | map_values({ get: .get }),
         components: .components.schemas
       }
