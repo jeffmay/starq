@@ -54,7 +54,7 @@ func TestRootCmdShowsUsageOnEmptyArgs(t *testing.T) {
 func TestRootCmdPetstore(t *testing.T) {
 	rootCmd := cmd.NewRootCmd()
 	cmd.InitRootCmd(rootCmd)
-	stdout, stderr, err := RunCommand(rootCmd, WithArgs("../internal/starq/fake/config/petstore-readonly.yaml"))
+	stdout, stderr, err := RunCommand(rootCmd, WithArgs("../sample/config/petstore-readonly.yaml"))
 	require.NoError(t, err)
 	require.Empty(t, stderr)
 	stdoutJSON, err := fastjson.Parse(stdout)

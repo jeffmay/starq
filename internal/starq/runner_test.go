@@ -1,9 +1,9 @@
 package starq_test
 
 import (
-	_ "embed"
 	"starq/internal/jsonx"
 	"starq/internal/starq"
+	"starq/sample"
 	"strings"
 	"testing"
 
@@ -14,12 +14,9 @@ import (
 // Tests the [starq.runner] functions using stubbed input and output.
 
 const (
-	petstoreReadOnlyConfigFile = "file://./fake/config/petstore-readonly.yaml"
-	simpleConfigFile           = "file://./fake/config/simple.yaml"
+	petstoreReadOnlyConfigFile = "file://../../sample/config/petstore-readonly.yaml"
+	simpleConfigFile           = "file://../../sample/config/simple.yaml"
 )
-
-//go:embed fake/input/petstore-openapi.json
-var petstoreSpecJSON string
 
 func TestNilStreamsNotAllowed(t *testing.T) {
 	require.Panics(t, func() {
@@ -55,7 +52,7 @@ func TestPetstoreTitle(t *testing.T) {
 	opts := MakeTestOpts().SetPrependRules(".info.title")
 	stdout := jsonx.NewJSONWriter()
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(petstoreSpecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PetstoreOpenAPIspecJSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.Empty(t, stderr.String())
 	require.NoError(t, err, stderr.String())
@@ -71,7 +68,7 @@ func TestPetstoreReadonly(t *testing.T) {
 	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(petstoreReadOnlyConfigFile))
 	stdout := jsonx.NewJSONWriter()
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(petstoreSpecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PetstoreOpenAPIspecJSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.NoError(t, err, stderr.String())
 	require.Empty(t, stderr.String())
