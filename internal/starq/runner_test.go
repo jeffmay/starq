@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fastjson"
 )
@@ -47,20 +48,16 @@ func TestInvalidJqRule(t *testing.T) {
 	require.Contains(t, stderr.String(), "jq: 1 compile error")
 }
 
+// TODO: This is outputing YAML as expected (since no file name is provided), but we should make validating YAML a little easier.
 func TestPetstoreTitle(t *testing.T) {
 	opts := MakeTestOpts().SetPrependRules(".info.title")
-	stdout := jsonx.NewJSONWriter()
+	stdout := new(strings.Builder)
 	stderr := new(strings.Builder)
 	runner := starq.NewRunner(strings.NewReader(sample.PETSTORE_OPENAPI_JSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.Empty(t, stderr.String())
 	require.NoError(t, err, stderr.String())
-	outJSON, err := stdout.OutputJSON()
-	require.NoError(t, err)
-	require.NotNil(t, outJSON)
-	titleBytes, err := outJSON.StringBytes()
-	require.NoError(t, err)
-	require.Equal(t, "Swagger Petstore", string(titleBytes))
+	require.Equal(t, "Swagger Petstore\n", stdout.String())
 }
 
 func TestPetstoreReadonly(t *testing.T) {
@@ -85,4 +82,21 @@ func TestPetstoreReadonly(t *testing.T) {
 	})
 	components := outJSON.GetObject("components")
 	require.NotNilf(t, components, ".components should be defined in:\n%s", debugPretty)
+}
+
+func TestPetstoreConvertToYaml(t *testing.T) {
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_YAML_STDOUT_PATH)))
+	stdin := sample.PETSTORE_OPENAPI_JSON
+	stdout := new(strings.Builder)
+	stderr := new(strings.Builder)
+	runner := starq.NewRunner(strings.NewReader(stdin), stdout, stderr)
+	err := runner.RunAllTransformers(opts)
+	require.NoError(t, err, stderr.String())
+	require.Empty(t, stderr.String())
+	require.NoError(t, err)
+	path, err := yaml.PathString("$.info.title")
+	require.NoError(t, err)
+	titleNode, err := path.ReadNode(strings.NewReader(stdout.String()))
+	require.NoError(t, err)
+	require.Equal(t, "Swagger Petstore", titleNode.String())
 }

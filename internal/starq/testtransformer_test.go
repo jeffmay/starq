@@ -84,15 +84,14 @@ func MakeTestTransformer() *TestTransformer {
 	}
 }
 
-// TODO: Defer this to the LoadTransformers method?
 func (c *TestTransformer) FromConfigFile(filename string) *TestTransformer {
 	config, err := starq.ReadTransformerConfigFile(filename)
 	if err != nil {
 		panic(fmt.Errorf("could not parse config file '%s': %w", filename, err))
 	}
 	c.config = config
-	if c.config.Input != nil && c.config.Input.File != nil {
-		c.WithInputFile(*c.config.Input.File)
+	if c.config.Input != nil && len(c.config.Input.File) > 0 {
+		c.WithInputFile(c.config.Input.File)
 	}
 	return c
 }
@@ -106,7 +105,7 @@ func (c *TestTransformer) WithInputFile(filename string) *TestTransformer {
 	if c.config.Input == nil {
 		c.config.Input = &starq.Input{}
 	}
-	c.config.Input.File = &filename
+	c.config.Input.File = filename
 	return c
 }
 
