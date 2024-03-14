@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"io"
 	"starq/cmd"
+	"starq/sample"
 	"strings"
 	"testing"
 
@@ -41,6 +42,10 @@ func RunCommand(cmd *cobra.Command, opts ...RunCommandOpt) (string, string, erro
 	return stdoutSpy.String(), stderrSpy.String(), err
 }
 
+func normalize(path sample.RelPath) string {
+	return sample.MustNormalize("..", path)
+}
+
 func TestRootCmdShowsUsageOnEmptyArgs(t *testing.T) {
 	rootCmd := cmd.NewRootCmd()
 	cmd.InitRootCmd(rootCmd)
@@ -51,10 +56,10 @@ func TestRootCmdShowsUsageOnEmptyArgs(t *testing.T) {
 	require.Contains(t, stdout, rootCmd.UsageString())
 }
 
-func TestRootCmdPetstore(t *testing.T) {
+func TestRootCmdPetstoreReadOnlyConfig(t *testing.T) {
 	rootCmd := cmd.NewRootCmd()
 	cmd.InitRootCmd(rootCmd)
-	stdout, stderr, err := RunCommand(rootCmd, WithArgs("../sample/config/petstore-readonly.yaml"))
+	stdout, stderr, err := RunCommand(rootCmd, WithArgs(normalize(sample.PETSTORE_TO_READONLY_STDOUT_PATH)))
 	require.NoError(t, err)
 	require.Empty(t, stderr)
 	stdoutJSON, err := fastjson.Parse(stdout)

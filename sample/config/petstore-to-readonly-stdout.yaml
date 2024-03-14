@@ -2,6 +2,7 @@
 input:
   file: ../input/petstore-openapi.json
 rules:
+  # output to stdout with only the info, paths (GET only), and components fields
   - name: Pick paths and schemas
     jq: |
       {

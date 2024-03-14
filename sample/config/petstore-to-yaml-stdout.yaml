@@ -1,0 +1,6 @@
+---
+input:
+  file: ../input/petstore-openapi.json
+output:
+  # output to stdout in YAML format
+  format: yaml

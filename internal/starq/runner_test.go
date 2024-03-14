@@ -13,10 +13,9 @@ import (
 
 // Tests the [starq.runner] functions using stubbed input and output.
 
-const (
-	petstoreReadOnlyConfigFile = "file://../../sample/config/petstore-readonly.yaml"
-	simpleConfigFile           = "file://../../sample/config/simple.yaml"
-)
+func normalize(path sample.RelPath) string {
+	return sample.MustNormalize("../..", path)
+}
 
 func TestNilStreamsNotAllowed(t *testing.T) {
 	require.Panics(t, func() {
@@ -31,7 +30,7 @@ func TestNilStreamsNotAllowed(t *testing.T) {
 }
 
 func TestLoadSimpleConfig(t *testing.T) {
-	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(simpleConfigFile))
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_READONLY_STDOUT_PATH)))
 	transformers, err := opts.LoadTransformers()
 	require.NoError(t, err)
 	require.Len(t, transformers[0].Config().Rules, 1)
@@ -52,7 +51,7 @@ func TestPetstoreTitle(t *testing.T) {
 	opts := MakeTestOpts().SetPrependRules(".info.title")
 	stdout := jsonx.NewJSONWriter()
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(sample.PetstoreOpenAPIspecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PETSTORE_OPENAPI_JSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.Empty(t, stderr.String())
 	require.NoError(t, err, stderr.String())
@@ -65,10 +64,10 @@ func TestPetstoreTitle(t *testing.T) {
 }
 
 func TestPetstoreReadonly(t *testing.T) {
-	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(petstoreReadOnlyConfigFile))
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_READONLY_STDOUT_PATH)))
 	stdout := jsonx.NewJSONWriter()
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(sample.PetstoreOpenAPIspecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PETSTORE_OPENAPI_JSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.NoError(t, err, stderr.String())
 	require.Empty(t, stderr.String())
