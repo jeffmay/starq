@@ -1,114 +1,77 @@
 package starq_test
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"starq/internal/starq"
-	"strings"
-
-	"github.com/valyala/fastjson"
 )
 
+// TestOpts replaces the [starq.Opts] struct and implements the [starq.TransformerLoader] interface.
+//
+// The big difference is that this stores [TestTransformer]s instead of [starq.Transformer]s and
+// it loads these transformers from file upon construction, rather than lazily. You should not use
+// this if you intend to test the [starq.Opts].
+//
+// This is mainly useful when you want to stub the input and output of the transformers, rather
+// than needing to read the output from the filesystem or stdout and for stubbing the input with
+// strings instead of needing to use files. This is primarily used for testing the [starq.Runner].
 type TestOpts struct {
-	PrependRules []string
-	AppendRules  []string
-	ConfigFile   string
-	Input        io.Reader
-	output       *strings.Builder
-	errors       *strings.Builder
+	starq.GlobalConfig
+	Transformers []TestTransformer
 }
 
-func (o TestOpts) Output() string {
-	return o.output.String()
-}
+var _ starq.TransformerLoader = new(TestOpts)
 
-func (o TestOpts) MustOutputValue() *fastjson.Value {
-	return fastjson.MustParse(o.Output())
-}
-
-func (o TestOpts) Pretty() string {
-	var obj interface{}
-	err := json.Unmarshal([]byte(o.Output()), &obj)
-	if err != nil {
-		panic(fmt.Errorf("could not indent JSON: %w", err))
+func (o TestOpts) LoadTransformers() ([]starq.Transformer, error) {
+	transformers := make([]starq.Transformer, len(o.Transformers))
+	for i, t := range o.Transformers {
+		transformers[i] = t
 	}
-	out, err := json.MarshalIndent(obj, "", "  ")
-	if err != nil {
-		panic(fmt.Errorf("could not indent JSON: %w", err))
-	}
-	return string(out)
+	return transformers, nil
 }
 
-func (o TestOpts) Errors() string {
-	return o.errors.String()
+func (o TestOpts) GetGlobalConfig() starq.GlobalConfig {
+	return o.GlobalConfig
 }
 
-func (o TestOpts) Opts() starq.Opts {
-	return starq.Opts{
-		PrependRules: o.PrependRules,
-		AppendRules:  o.AppendRules,
-		ConfigFile:   o.ConfigFile,
-		Input:        o.Input,
-		Output:       o.output,
-		Errors:       o.errors,
+// MakeTestOpts uses the builder pattern to construct a new [TestOpts] with stubbed [TestTransformer]s.
+//
+// By default, the [TestOpts] will use the [DefaultTestTransformer] as its only transformer.
+func MakeTestOpts() *TestOpts {
+	return &TestOpts{
+		GlobalConfig: starq.GlobalConfig{
+			PrependRules: nil,
+			AppendRules:  nil,
+		},
+		Transformers: []TestTransformer{*DefaultTestTransformer()},
 	}
 }
 
-type TestOpt func(*TestOpts)
-
-func WithAppendRules(rules ...string) TestOpt {
-	return func(o *TestOpts) {
-		o.AppendRules = rules
-	}
+func (o *TestOpts) SetAppendRules(rules ...string) *TestOpts {
+	o.GlobalConfig.AppendRules = rules
+	return o
 }
 
-func AppendRules(rules ...string) TestOpt {
-	return func(o *TestOpts) {
-		o.AppendRules = append(o.AppendRules, rules...)
-	}
+func (o *TestOpts) WithRulesAppended(rules ...string) *TestOpts {
+	o.GlobalConfig.AppendRules = append(o.GlobalConfig.AppendRules, rules...)
+	return o
 }
 
-func WithPrependRules(rules ...string) TestOpt {
-	return func(o *TestOpts) {
-		o.PrependRules = rules
-	}
+func (o *TestOpts) SetPrependRules(rules ...string) *TestOpts {
+	o.GlobalConfig.PrependRules = rules
+	return o
 }
 
-func PrependRules(rules ...string) TestOpt {
-	return func(o *TestOpts) {
-		o.PrependRules = append(o.PrependRules, rules...)
-	}
+func (o *TestOpts) WithRulesPrepended(rules ...string) *TestOpts {
+	o.GlobalConfig.PrependRules = append(o.GlobalConfig.PrependRules, rules...)
+	return o
 }
 
-func WithConfigFile(configFile string) TestOpt {
-	return func(o *TestOpts) {
-		o.ConfigFile = configFile
+func (o *TestOpts) WithTransformers(transformers ...*TestTransformer) *TestOpts {
+	unwrapped := make([]TestTransformer, 0, len(transformers))
+	for _, c := range transformers {
+		if c != nil {
+			unwrapped = append(unwrapped, *c)
+		}
 	}
-}
-
-func WithInputString(input string) TestOpt {
-	return func(o *TestOpts) {
-		reader := strings.NewReader(input)
-		o.Input = reader
-	}
-}
-
-func WithInputReader(input io.Reader) TestOpt {
-	return func(o *TestOpts) {
-		o.Input = input
-	}
-}
-
-func MakeTestOpts(opts ...TestOpt) TestOpts {
-	var o TestOpts
-	for _, opt := range opts {
-		opt(&o)
-	}
-	if o.Input == nil {
-		o.Input = strings.NewReader("")
-	}
-	o.output = new(strings.Builder)
-	o.errors = new(strings.Builder)
+	o.Transformers = unwrapped
 	return o
 }
