@@ -70,22 +70,14 @@ func (j jsonWriter) MustOutputJSON() *fastjson.Value {
 }
 
 func (o jsonWriter) OutputJSONPretty() (string, error) {
+	var err error
 	out := o.Output()
 	outHash := hashString(out)
 	if o.prettyHash != outHash {
-		var obj interface{}
-		err := json.Unmarshal([]byte(out), &obj)
-		if err != nil {
-			return "", fmt.Errorf("could not unmarshal invalid JSON: %w", err)
-		}
-		indented, err := json.MarshalIndent(obj, "", "  ")
-		if err != nil {
-			return "", fmt.Errorf("could not remarshal JSON: %w", err)
-		}
-		o.pretty = string(indented)
+		o.pretty, err = Pretty(out)
 		o.prettyHash = hashString(o.pretty)
 	}
-	return o.pretty, nil
+	return o.pretty, err
 }
 
 func (j jsonWriter) MustOutputJSONPretty() string {
@@ -94,4 +86,17 @@ func (j jsonWriter) MustOutputJSONPretty() string {
 		panic(err)
 	}
 	return pretty
+}
+
+func Pretty(unformattedJSON string) (string, error) {
+	var obj interface{}
+	err := json.Unmarshal([]byte(unformattedJSON), &obj)
+	if err != nil {
+		return "", fmt.Errorf("could not unmarshal invalid JSON: %w", err)
+	}
+	indented, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("could not remarshal JSON: %w", err)
+	}
+	return string(indented), nil
 }
