@@ -1,25 +1,22 @@
 package starq_test
 
 import (
-	_ "embed"
 	"starq/internal/jsonx"
 	"starq/internal/starq"
+	"starq/sample"
 	"strings"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fastjson"
 )
 
 // Tests the [starq.runner] functions using stubbed input and output.
 
-const (
-	petstoreReadOnlyConfigFile = "file://./fake/config/petstore-readonly.yaml"
-	simpleConfigFile           = "file://./fake/config/simple.yaml"
-)
-
-//go:embed fake/input/petstore-openapi.json
-var petstoreSpecJSON string
+func normalize(path sample.RelPath) string {
+	return sample.MustNormalize("../..", path)
+}
 
 func TestNilStreamsNotAllowed(t *testing.T) {
 	require.Panics(t, func() {
@@ -34,7 +31,7 @@ func TestNilStreamsNotAllowed(t *testing.T) {
 }
 
 func TestLoadSimpleConfig(t *testing.T) {
-	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(simpleConfigFile))
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_READONLY_STDOUT_PATH)))
 	transformers, err := opts.LoadTransformers()
 	require.NoError(t, err)
 	require.Len(t, transformers[0].Config().Rules, 1)
@@ -51,27 +48,23 @@ func TestInvalidJqRule(t *testing.T) {
 	require.Contains(t, stderr.String(), "jq: 1 compile error")
 }
 
+// TODO: This is outputing YAML as expected (since no file name is provided), but we should make validating YAML a little easier.
 func TestPetstoreTitle(t *testing.T) {
 	opts := MakeTestOpts().SetPrependRules(".info.title")
-	stdout := jsonx.NewJSONWriter()
+	stdout := new(strings.Builder)
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(petstoreSpecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PETSTORE_OPENAPI_JSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.Empty(t, stderr.String())
 	require.NoError(t, err, stderr.String())
-	outJSON, err := stdout.OutputJSON()
-	require.NoError(t, err)
-	require.NotNil(t, outJSON)
-	titleBytes, err := outJSON.StringBytes()
-	require.NoError(t, err)
-	require.Equal(t, "Swagger Petstore", string(titleBytes))
+	require.Equal(t, "Swagger Petstore\n", stdout.String())
 }
 
 func TestPetstoreReadonly(t *testing.T) {
-	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(petstoreReadOnlyConfigFile))
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_READONLY_STDOUT_PATH)))
 	stdout := jsonx.NewJSONWriter()
 	stderr := new(strings.Builder)
-	runner := starq.NewRunner(strings.NewReader(petstoreSpecJSON), stdout, stderr)
+	runner := starq.NewRunner(strings.NewReader(sample.PETSTORE_OPENAPI_JSON), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
 	require.NoError(t, err, stderr.String())
 	require.Empty(t, stderr.String())
@@ -89,4 +82,21 @@ func TestPetstoreReadonly(t *testing.T) {
 	})
 	components := outJSON.GetObject("components")
 	require.NotNilf(t, components, ".components should be defined in:\n%s", debugPretty)
+}
+
+func TestPetstoreConvertToYaml(t *testing.T) {
+	opts := MakeTestOpts().WithTransformers(MakeTestTransformer().FromConfigFile(normalize(sample.PETSTORE_TO_YAML_STDOUT_PATH)))
+	stdin := sample.PETSTORE_OPENAPI_JSON
+	stdout := new(strings.Builder)
+	stderr := new(strings.Builder)
+	runner := starq.NewRunner(strings.NewReader(stdin), stdout, stderr)
+	err := runner.RunAllTransformers(opts)
+	require.NoError(t, err, stderr.String())
+	require.Empty(t, stderr.String())
+	require.NoError(t, err)
+	path, err := yaml.PathString("$.info.title")
+	require.NoError(t, err)
+	titleNode, err := path.ReadNode(strings.NewReader(stdout.String()))
+	require.NoError(t, err)
+	require.Equal(t, "Swagger Petstore", titleNode.String())
 }

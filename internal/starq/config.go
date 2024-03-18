@@ -12,16 +12,30 @@ import (
 type TransformerConfig struct {
 	Source ConfigSource `yaml:"-"`
 	Input  *Input       `yaml:"input"`
+	Output *Output      `yaml:"output"`
 	Rules  []Rule       `yaml:"rules"`
 }
 
+type DocumentFormat string
+
+const (
+	UnknownFormat DocumentFormat = "" // (default) auto-detect from file extension
+	JSONFormat    DocumentFormat = "json"
+	YAMLFormat    DocumentFormat = "yaml"
+)
+
 type Input struct {
-	File *string `yaml:"file"`
+	File   string         `yaml:"file,omitempty"`
+	Format DocumentFormat `yaml:"format,omitempty"`
+}
+
+type Output struct {
+	Format DocumentFormat `yaml:"format,omitempty"`
 }
 
 type Rule struct {
-	Name string `yaml:"name"`
-	Jq   string `yaml:"jq"`
+	Name string `yaml:"name,omitempty"`
+	Jq   string `yaml:"jq,omitempty"` // TODO deprecate and rename to "expr"
 }
 
 // DefaultTransformerConfig returns a new [TransformerConfig] with the [DefaultConfigSource] and no rules or input file.

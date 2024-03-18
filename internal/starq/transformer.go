@@ -24,14 +24,14 @@ func (config TransformerConfig) Config() TransformerConfig {
 }
 
 func (config *TransformerConfig) InputReader(stdin io.Reader) (io.ReadCloser, error) {
-	if config == nil || config.Input == nil || config.Input.File == nil {
+	if config == nil || config.Input == nil {
 		return io.NopCloser(stdin), nil
 	}
 	if defnPath, ok := config.Source.AsFileName(); ok {
 		defnDir := filepath.Dir(defnPath)
-		absPath, err := filepath.Abs(filepath.Join(defnDir, *config.Input.File))
+		absPath, err := filepath.Abs(filepath.Join(defnDir, config.Input.File))
 		if err != nil {
-			return nil, fmt.Errorf("config .input.file not found '%s'", *config.Input.File)
+			return nil, fmt.Errorf("config .input.file not found '%s'", config.Input.File)
 		}
 		file, err := os.Open(absPath)
 		if err != nil {
