@@ -2,5 +2,5 @@
 input:
   file: ../input/petstore-openapi.json
 output:
-  # output to stdout in YAML format
+  file: ../output/petstore-openapi.yaml
   format: yaml

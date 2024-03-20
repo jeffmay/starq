@@ -30,6 +30,7 @@ type Input struct {
 }
 
 type Output struct {
+	File   string         `yaml:"file,omitempty"`
 	Format DocumentFormat `yaml:"format,omitempty"`
 }
 
