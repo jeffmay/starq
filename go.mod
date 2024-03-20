@@ -1,4 +1,4 @@
-module starq
+module github.com/jeffmay/starq
 
 go 1.22.0
 

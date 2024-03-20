@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"starq/internal/iox"
 	"strings"
+
+	"github.com/jeffmay/starq/internal/pkg/iox"
 
 	"github.com/goccy/go-yaml"
 )

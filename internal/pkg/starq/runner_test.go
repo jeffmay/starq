@@ -1,10 +1,11 @@
 package starq_test
 
 import (
-	"starq/internal/starq"
-	"starq/sample"
 	"strings"
 	"testing"
+
+	"github.com/jeffmay/starq/internal/pkg/starq"
+	"github.com/jeffmay/starq/sample"
 
 	"github.com/goccy/go-yaml"
 	"github.com/jeffmay/starq/pkg/tsq"
@@ -14,7 +15,7 @@ import (
 // Tests the [starq.runner] functions using stubbed input and output.
 
 func normalize(path sample.RelPath) string {
-	return sample.MustNormalize("../..", path)
+	return sample.MustNormalize("../../..", path)
 }
 
 func TestNilStreamsNotAllowed(t *testing.T) {

@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"starq/internal/iox"
+
+	"github.com/jeffmay/starq/internal/pkg/iox"
 )
 
 // TODO: How should I handle closing streams here?

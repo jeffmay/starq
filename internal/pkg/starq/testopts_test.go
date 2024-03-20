@@ -1,7 +1,7 @@
 package starq_test
 
 import (
-	"starq/internal/starq"
+	"github.com/jeffmay/starq/internal/pkg/starq"
 )
 
 // TestOpts replaces the [starq.Opts] struct and implements the [starq.TransformerLoader] interface.

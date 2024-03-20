@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"starq/cmd"
-	"starq/sample"
 	"strings"
 	"testing"
+
+	"github.com/jeffmay/starq/cmd"
+	"github.com/jeffmay/starq/sample"
 
 	"gopkg.in/yaml.v3"
 

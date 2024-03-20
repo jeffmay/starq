@@ -3,9 +3,10 @@ package starq_test
 import (
 	"fmt"
 	"io"
-	"starq/internal/iox"
-	"starq/internal/starq"
 	"strings"
+
+	"github.com/jeffmay/starq/internal/pkg/iox"
+	"github.com/jeffmay/starq/internal/pkg/starq"
 )
 
 type TestTransformer struct {
