@@ -2,9 +2,10 @@ package iox_test
 
 import (
 	"io"
-	"starq/internal/iox"
 	"strings"
 	"testing"
+
+	"github.com/jeffmay/starq/internal/pkg/iox"
 
 	"github.com/stretchr/testify/require"
 )

@@ -1,6 +1,8 @@
 ---
 input:
   file: ../input/petstore-openapi.json
+output:
+  file: ../output/petstore-openapi-readonly.json
 rules:
   # output to stdout with only the info, paths (GET only), and components fields
   - name: Pick paths and schemas

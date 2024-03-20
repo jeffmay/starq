@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 package main
 
-import "starq/cmd"
+import "github.com/jeffmay/starq/cmd"
 
 func main() {
 	cmd.Execute()

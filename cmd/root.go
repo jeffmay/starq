@@ -23,7 +23,8 @@ package cmd
 
 import (
 	"os"
-	"starq/internal/starq"
+
+	"github.com/jeffmay/starq/internal/pkg/starq"
 
 	"github.com/spf13/cobra"
 )
