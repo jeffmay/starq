@@ -1,15 +1,14 @@
 package starq_test
 
 import (
-	"starq/internal/jsonx"
 	"starq/internal/starq"
 	"starq/sample"
 	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
+	"github.com/jeffmay/starq/pkg/tsq"
 	"github.com/stretchr/testify/require"
-	"github.com/valyala/fastjson"
 )
 
 // Tests the [starq.runner] functions using stubbed input and output.
@@ -39,7 +38,7 @@ func TestLoadSimpleConfig(t *testing.T) {
 
 func TestInvalidJqRule(t *testing.T) {
 	opts := MakeTestOpts().WithRulesAppended("invalid")
-	stdout := jsonx.NewJSONWriter()
+	stdout := new(strings.Builder)
 	stderr := new(strings.Builder)
 	runner := starq.NewRunner(strings.NewReader(""), stdout, stderr)
 	err := runner.RunAllTransformers(opts)
@@ -70,22 +69,14 @@ func TestPetstoreJSONtoReadOnly(t *testing.T) {
 	require.NoError(t, err, stderr.String())
 	require.Empty(t, stderr.String())
 	require.Empty(t, stdout.String())
-	out := transformer.Output()
-	debugPretty, err := jsonx.Pretty(out)
-	require.NoError(t, err)
-	outJSON, err := fastjson.Parse(out)
-	require.NoError(t, err)
-	paths := outJSON.GetObject("paths")
-	require.NotNilf(t, paths, ".paths should be defined in:\n%s", debugPretty)
-	require.Equalf(t, paths.Len(), 2, ".paths should have length 2 in:\n%s", debugPretty)
-	paths.Visit(func(key []byte, path *fastjson.Value) {
-		getRoute := path.GetObject("get")
-		require.NotNilf(t, getRoute, ".paths[\"%s\"].get should be defined in:\n%s", string(key), debugPretty)
-		postRoute := path.GetObject("post")
-		require.Nilf(t, postRoute, ".paths[\"%s\"].post should NOT be defined in:\n%s", string(key), debugPretty)
-	})
-	components := outJSON.GetObject("components")
-	require.NotNilf(t, components, ".components should be defined in:\n%s", debugPretty)
+	top := tsq.ParseJSON(transformer.Output())
+	paths := top.MustGetObject("paths")
+	require.Equalf(t, len(paths), 2, ".paths should have length 2 in:\n%s", top.Pretty())
+	for _, v := range paths {
+		v.MustGetObject("get")
+		require.False(t, v.Exists("post"))
+	}
+	top.MustGetObject("components")
 }
 
 func TestPetstoreJSONtoYAML(t *testing.T) {
